@@ -18,6 +18,12 @@ class _WelcomePageState extends State<WelcomePage> {
     });
   }
 
+  void signOut() {
+    // Implement the sign-out logic here
+    // For example, you can navigate back to the sign-in screen
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,7 +35,7 @@ class _WelcomePageState extends State<WelcomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Welcome${widget.isStudent ? '' : ' Staff'}, you have been missed!',
+              'Welcome, you have been missed!',
               style: TextStyle(fontSize: 20.0),
             ),
             SizedBox(height: 16.0),
@@ -45,33 +51,49 @@ class _WelcomePageState extends State<WelcomePage> {
               SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () {
-                  // Add functionality to modify notice
-                  // Implement the logic for modifying a notice here
+                  // Add functionality to view notice
+                  // Implement the logic for viewing notices here
                 },
-                child: Text('Modify Notice'),
+                child: Text('View Notice'),
               ),
               SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () {
-                  // Add functionality to delete notice
-                  // Implement the logic for deleting a notice here
+                  // Implement the sign-out logic for staff
+                  signOut();
                 },
-                child: Text('Delete Notice'),
+                child: Text('Sign Out'),
+              ),
+            ],
+            if (widget.isStudent && showActions) ...[
+              SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: () {
+                  // Add functionality to view notice
+                  // Implement the logic for viewing notices here
+                },
+                child: Text('View Notice'),
+              ),
+              SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: () {
+                  // Implement the sign-out logic for students
+                  signOut();
+                },
+                child: Text('Sign Out'),
               ),
             ],
           ],
         ),
       ),
-      floatingActionButton: !widget.isStudent
-          ? FloatingActionButton(
-              onPressed: () {
-                toggleActions(); // Toggle the display of actions
-              },
-              child: Icon(
-                showActions ? Icons.close : Icons.add,
-              ),
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          toggleActions(); // Toggle the display of actions
+        },
+        child: Icon(
+          showActions ? Icons.close : Icons.add,
+        ),
+      ),
     );
   }
 }

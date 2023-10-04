@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'welcome_page.dart'; // Import the WelcomePage class
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firebase Firestore
+import 'welcome_page.dart';
 
 class SignInScreen extends StatefulWidget {
   final bool isStudent;
@@ -12,28 +14,113 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  bool isLoggedIn = false; // Track login state
-  bool isStudent = false; // Track user role
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   final emailRegex = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
-
-  @override
-  void initState() {
-    super.initState();
-    isStudent = widget.isStudent; // Initialize user role based on registration
-  }
 
   bool isEmailValid(String email) {
     return emailRegex.hasMatch(email);
   }
 
+  Future<void> signIn() async {
+    final email = emailController.text;
+    final password = passwordController.text;
+
+    // Check if email and password are valid
+    if (isEmailValid(email) && password.isNotEmpty) {
+      try {
+        // Sign in with Firebase Authentication
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+
+        // Successful login, now fetch user details from Firestore
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          final userDocument = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
+
+          // Determine the user's role from Firestore document
+          final userRole = userDocument['role']; // Assumes 'role' is a field in Firestore
+
+          // Navigate to the appropriate screen based on the user's role
+          if (userRole == 'student' && widget.isStudent) {
+            // User is a student and trying to sign in as a student
+            navigateToWelcomePage();
+          } else if (userRole == 'staff' && widget.isStaff) {
+            // User is a staff member and trying to sign in as staff
+            navigateToWelcomePage();
+          } else {
+            // User role and selection do not match
+            // Show an error message or handle it as needed
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Role Mismatch'),
+                  content: Text('You do not have the required role.'),
+                  actions: <Widget>[
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close dialog
+                      },
+                      child: Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+          }
+        }
+      } catch (e) {
+        // Handle login error
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Login Error'),
+              content: Text('Failed to log in: $e'),
+              actions: <Widget>[
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close dialog
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } else {
+      // Show validation error message
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Validation Error'),
+            content: Text('Please enter a valid email and password.'),
+            actions: <Widget>[
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
   void navigateToWelcomePage() {
-    // Replace this with the appropriate navigation logic to WelcomePage
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) =>
-            WelcomePage(isStudent: isStudent), // Pass isStudent to WelcomePage
+        builder: (context) => WelcomePage(isStudent: widget.isStudent),
       ),
     );
   }
@@ -50,63 +137,27 @@ class _SignInScreenState extends State<SignInScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            if (!isLoggedIn) ...[
-              SizedBox(height: 24.0),
-              // Display login fields only if not logged in
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                ),
-                keyboardType: TextInputType.emailAddress, // Show email keyboard
+            SizedBox(height: 24.0),
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(
+                labelText: 'Email',
               ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            SizedBox(height: 16.0),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Password',
               ),
-              SizedBox(height: 24.0),
-              ElevatedButton(
-                onPressed: () {
-                  // Replace this logic with your actual login authentication
-                  // For simplicity, assume login is successful for any non-empty input
-                  final email = emailController.text;
-                  final password = passwordController.text;
-
-                  if (isEmailValid(email) && password.isNotEmpty) {
-                    setState(() {
-                      isLoggedIn = true;
-                    });
-                    // Navigate to the WelcomePage on successful login
-                    navigateToWelcomePage();
-                  } else {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text('Validation Error'),
-                          content:
-                              Text('Please enter a valid email and password.'),
-                          actions: <Widget>[
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: Text('OK'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  }
-                },
-                child: Text('Login'),
-              ),
-            ],
-            // Remove the Welcome message from here
+            ),
+            SizedBox(height: 24.0),
+            ElevatedButton(
+              onPressed: signIn,
+              child: Text('Login'),
+            ),
           ],
         ),
       ),

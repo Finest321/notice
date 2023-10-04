@@ -1,22 +1,7 @@
 import 'package:flutter/material.dart';
-import 'signin_page.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Registration and Sign-In',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: RegistrationScreen(),
-    );
-  }
-}
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore library
+import 'package:flutter_app/pages/signin_page.dart';
 
 class RegistrationScreen extends StatefulWidget {
   @override
@@ -24,13 +9,108 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  bool isStudent = true; // Default to student registration
-  bool isStaff = false; // Default to not being a staff member
+
   TextEditingController staffIdController =
       TextEditingController(); // For staff ID
+  TextEditingController regNumberController =
+      TextEditingController(); // For student registration number
+
+  bool isStudent = true; // Default to student registration
+  bool isStaff = false; // Default to not being a staff member
+
+  String staffIdErrorText = ''; // Error text for Staff ID validation
+  String emailErrorText = ''; // Error text for email validation
+  String registrationStatus = ''; // Registration status message
+
+  // Function to handle user registration
+  Future<void> registerUser() async {
+    final name = nameController.text;
+    final email = emailController.text;
+    final password = passwordController.text;
+    final staffId = staffIdController.text;
+    final regNumber = regNumberController.text;
+
+    // Regular expression to validate email
+    final emailRegex = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+
+    try {
+      final UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      // After successful registration, store user data in Firebase Firestore
+      final user = userCredential.user;
+      if (user != null) {
+        final userRole = isStudent ? 'student' : 'staff';
+
+        // Store user data in Firestore
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'email': email,
+          'role': userRole,
+          'password': password, // Don't store actual password, just for example
+          'username': name,
+        });
+      }
+
+      // Registration is successful; update the registration status
+      setState(() {
+        registrationStatus = 'Registration Successful';
+      });
+
+      // Show registration success dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Registration Successful'),
+            content: Text('Your registration was successful.'),
+            actions: <Widget>[
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close dialog
+                  // Navigate to the SignInPage
+                  // Pass user role information to the SignInScreen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SignInScreen(
+                        isStudent: isStudent,
+                        isStaff: isStaff,
+                      ),
+                    ),
+                  );
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      // Handle registration error
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Registration Error'),
+            content: Text('Failed to register: $e'),
+            actions: <Widget>[
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close dialog
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,19 +143,28 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 });
               },
             ),
-            // If the user selects 'Staff', ask for Staff ID
             if (isStaff) ...[
               TextField(
                 controller: staffIdController,
                 decoration: InputDecoration(
                   labelText: 'Staff ID',
+                  errorText:
+                      staffIdErrorText.isNotEmpty ? staffIdErrorText : null,
+                ),
+              ),
+            ],
+            if (isStudent) ...[
+              TextField(
+                controller: regNumberController,
+                decoration: InputDecoration(
+                  labelText: 'Registration Number',
                 ),
               ),
             ],
             TextField(
               controller: nameController,
               decoration: InputDecoration(
-                labelText: 'Name',
+                labelText: 'Username',
               ),
             ),
             SizedBox(height: 16.0),
@@ -83,6 +172,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               controller: emailController,
               decoration: InputDecoration(
                 labelText: 'Email',
+                errorText: emailErrorText.isNotEmpty ? emailErrorText : null,
               ),
             ),
             SizedBox(height: 16.0),
@@ -95,60 +185,31 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
             SizedBox(height: 24.0),
             ElevatedButton(
-              onPressed: () {
-                final name = nameController.text;
-                final email = emailController.text;
-                final password = passwordController.text;
-
-                if ((isStudent ||
-                        (isStaff && staffIdController.text.isNotEmpty)) &&
-                    name.isNotEmpty &&
-                    email.isNotEmpty &&
-                    password.isNotEmpty) {
-                  // All fields are filled, navigate to the SignInPage
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          SignInScreen(isStudent: isStudent, isStaff: isStaff),
-                    ),
-                  );
-                } else {
-                  // Show an error dialog if any field is empty.
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: Text('Validation Error'),
-                        content: Text('Please fill in all fields.'),
-                        actions: <Widget>[
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                }
-              },
+              onPressed: registerUser,
               child: Text('Register'),
             ),
-            SizedBox(height: 16.0), // Add some spacing
+            SizedBox(height: 16.0),
+            Text(
+              registrationStatus, // Display registration status message
+              style: TextStyle(
+                fontSize: 16.0,
+                color: Colors.green, // Change color to green for success
+              ),
+            ),
+            SizedBox(height: 16.0),
             Text(
               'Already have an account? ',
               style: TextStyle(fontSize: 16.0),
             ),
             TextButton(
               onPressed: () {
-                // Navigate to the SignInPage when "Sign In" is tapped.
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        SignInScreen(isStudent: isStudent, isStaff: isStaff),
+                    builder: (context) => SignInScreen(
+                      isStudent: isStudent,
+                      isStaff: isStaff,
+                    ),
                   ),
                 );
               },
