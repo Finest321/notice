@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firebase Firestore
+import 'package:flutter_app/pages/registration_screen.dart';
 import 'welcome_page.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -44,7 +45,8 @@ class _SignInScreenState extends State<SignInScreen> {
               .get();
 
           // Determine the user's role from Firestore document
-          final userRole = userDocument['role']; // Assumes 'role' is a field in Firestore
+          final userRole =
+              userDocument['role']; // Assumes 'role' is a field in Firestore
 
           // Navigate to the appropriate screen based on the user's role
           if (userRole == 'student' && widget.isStudent) {
@@ -130,6 +132,7 @@ class _SignInScreenState extends State<SignInScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Sign In'),
+        automaticallyImplyLeading: false,
       ),
       backgroundColor: Colors.white,
       body: Padding(
@@ -157,6 +160,26 @@ class _SignInScreenState extends State<SignInScreen> {
             ElevatedButton(
               onPressed: signIn,
               child: Text('Login'),
+            ),
+            SizedBox(height: 16.0),
+            // Add a TextButton for "Don't have an account? Sign up" here
+            TextButton(
+              onPressed: () {
+                // Navigate to the RegistrationScreen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RegistrationScreen(),
+                  ),
+                );
+              },
+              child: Text(
+                "Don't have an account? "
+                "Sign up",
+                style: TextStyle(
+                  fontSize: 16.0,
+                ),
+              ),
             ),
           ],
         ),
