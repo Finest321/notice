@@ -115,115 +115,117 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('User Registration'),
-      ),
-      backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            DropdownButtonFormField(
-              value: isStudent ? 'Student' : 'Staff',
-              items: [
-                DropdownMenuItem(
-                  value: 'Student',
-                  child: Text('Student'),
+        appBar: AppBar(
+          title: Text('User Registration'),
+        ),
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                DropdownButtonFormField(
+                  value: isStudent ? 'Student' : 'Staff',
+                  items: [
+                    DropdownMenuItem(
+                      value: 'Student',
+                      child: Text('Student'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Staff',
+                      child: Text('Staff'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      isStudent = value == 'Student';
+                      isStaff = value == 'Staff';
+                    });
+                  },
                 ),
-                DropdownMenuItem(
-                  value: 'Staff',
-                  child: Text('Staff'),
-                ),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  isStudent = value == 'Student';
-                  isStaff = value == 'Staff';
-                });
-              },
-            ),
-            if (isStaff) ...[
-              TextField(
-                controller: staffIdController,
-                decoration: InputDecoration(
-                  labelText: 'Staff ID',
-                  errorText:
-                      staffIdErrorText.isNotEmpty ? staffIdErrorText : null,
-                ),
-              ),
-            ],
-            if (isStudent) ...[
-              TextField(
-                controller: regNumberController,
-                decoration: InputDecoration(
-                  labelText: 'Registration Number',
-                ),
-              ),
-            ],
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: 'Username',
-              ),
-            ),
-            SizedBox(height: 16.0),
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                errorText: emailErrorText.isNotEmpty ? emailErrorText : null,
-              ),
-            ),
-            SizedBox(height: 16.0),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Password',
-              ),
-            ),
-            SizedBox(height: 24.0),
-            ElevatedButton(
-              onPressed: registerUser,
-              child: Text('Register'),
-            ),
-            SizedBox(height: 16.0),
-            Text(
-              registrationStatus, // Display registration status message
-              style: TextStyle(
-                fontSize: 16.0,
-                color: Colors.green, // Change color to green for success
-              ),
-            ),
-            SizedBox(height: 16.0),
-            Text(
-              'Already have an account? ',
-              style: TextStyle(fontSize: 16.0),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SignInScreen(
-                      isStudent: isStudent,
-                      isStaff: isStaff,
+                if (isStaff) ...[
+                  TextField(
+                    controller: staffIdController,
+                    decoration: InputDecoration(
+                      labelText: 'Staff ID',
+                      errorText:
+                          staffIdErrorText.isNotEmpty ? staffIdErrorText : null,
                     ),
                   ),
-                );
-              },
-              child: Text(
-                'Sign In',
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.blue,
+                ],
+                if (isStudent) ...[
+                  TextField(
+                    controller: regNumberController,
+                    decoration: InputDecoration(
+                      labelText: 'Registration Number',
+                    ),
+                  ),
+                ],
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                  ),
                 ),
-              ),
+                SizedBox(height: 16.0),
+                TextField(
+                  controller: emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    errorText:
+                        emailErrorText.isNotEmpty ? emailErrorText : null,
+                  ),
+                ),
+                SizedBox(height: 16.0),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                  ),
+                ),
+                SizedBox(height: 24.0),
+                ElevatedButton(
+                  onPressed: registerUser,
+                  child: Text('Register'),
+                ),
+                SizedBox(height: 16.0),
+                Text(
+                  registrationStatus, // Display registration status message
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    color: Colors.green, // Change color to green for success
+                  ),
+                ),
+                SizedBox(height: 16.0),
+                Text(
+                  'Already have an account? ',
+                  style: TextStyle(fontSize: 16.0),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SignInScreen(
+                          isStudent: isStudent,
+                          isStaff: isStaff,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'Sign In',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
 }

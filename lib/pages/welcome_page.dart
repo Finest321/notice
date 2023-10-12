@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/pages/add_notice.dart';
+import 'package:flutter_app/pages/logout_screen.dart';
 
 class WelcomePage extends StatefulWidget {
   final bool isStudent;
@@ -44,6 +45,17 @@ class _WelcomePageState extends State<WelcomePage> {
               PopupMenuItem<String>(
                 value: 'item2',
                 child: Text('Logout'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LogoutScreen(
+                        isStudent: true,
+                        isStaff: !true,
+                      ),
+                    ),
+                  );
+                },
               ),
               // Add more items as needed
             ],

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'post_notice.dart'; // Import the PostNoticeScreen
 
 class AddNoticeScreen extends StatefulWidget {
   @override
@@ -54,8 +55,13 @@ class _AddNoticeScreenState extends State<AddNoticeScreen> {
       return;
     }
 
-    // Implement logic to post the notice with selected images
-    // You can use _selectedImages to access the selected images
+    // Implement navigation to the PostNoticeScreen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PostNoticeScreen(selectedImages: _selectedImages),
+      ),
+    );
   }
 
   void _removeImage(int index) {
@@ -89,7 +95,8 @@ class _AddNoticeScreenState extends State<AddNoticeScreen> {
                 ),
                 style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(
-                      Size(150, 40)), // Decrease button size
+                    Size(150, 40),
+                  ), // Decrease button size
                 ),
               ),
 
@@ -137,7 +144,7 @@ class _AddNoticeScreenState extends State<AddNoticeScreen> {
               // "Post Notice" button at the bottom
               ElevatedButton(
                 onPressed: () {
-                  _postNotice(); // Implement logic for posting the notice here
+                  _postNotice(); // Implement navigation to the PostNoticeScreen
                 },
                 child: Text(
                   'Post Notice',
@@ -145,7 +152,8 @@ class _AddNoticeScreenState extends State<AddNoticeScreen> {
                 ),
                 style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(
-                      Size(200, 50)), // Increase button size
+                    Size(200, 50),
+                  ), // Increase button size
                 ),
               ),
             ],

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_app/pages/welcome_page.dart';
 import 'package:flutter_app/pages/registration_screen.dart';
-import 'package:firebase_core/firebase_core.dart'; // Import Firebase Core
-import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Initialize Firebase
+  await Firebase.initializeApp();
   runApp(RegistrationApp());
 }
 
@@ -17,7 +19,7 @@ class RegistrationApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: AuthenticationWrapper(), // Use AuthenticationWrapper
+      home: AuthenticationWrapper(),
     );
   }
 }
@@ -25,22 +27,52 @@ class RegistrationApp extends StatelessWidget {
 class AuthenticationWrapper extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  Future<String> fetchUserRoleFromFirestore(String uid) async {
+    try {
+      final userDocument =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (userDocument.exists) {
+        final userRole = userDocument.data()?['role'];
+        return userRole;
+      } else {
+        return 'unknown';
+      }
+    } catch (e) {
+      print('Error fetching user role: $e');
+      return 'unknown';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      stream: _auth
-          .authStateChanges(), // Listen to user authentication state changes
+      stream: _auth.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // Firebase is still initializing, display a loading indicator
           return CircularProgressIndicator();
         } else if (snapshot.hasData) {
-          // User is authenticated, navigate to the registration screen or home screen
-          return RegistrationScreen(); // Replace with your registration screen
+          final user = snapshot.data;
+          if (user != null) {
+            fetchUserRoleFromFirestore(user.uid).then((String userRole) {
+              if (userRole == 'student') {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => WelcomePage(isStudent: true),
+                  ),
+                );
+              } else if (userRole == 'staff') {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => WelcomePage(isStudent: false),
+                  ),
+                );
+              }
+            });
+          }
         } else {
-          // User is not authenticated, navigate to the registration screen or login screen
-          return RegistrationScreen(); // Replace with your registration screen or login screen
+          return RegistrationScreen();
         }
+        return Container();
       },
     );
   }
