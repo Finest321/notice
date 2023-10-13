@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/pages/add_notice.dart';
 import 'package:flutter_app/pages/logout_screen.dart';
+import 'package:flutter_app/pages/view_notice.dart';
+import 'package:flutter_app/pages/delete_notice.dart';
 
 class WelcomePage extends StatefulWidget {
   final bool isStudent;
@@ -93,7 +95,13 @@ class _WelcomePageState extends State<WelcomePage> {
                     title: 'View Notice',
                     icon: Icons.visibility,
                     onTap: () {
-                      // Implement logic for viewing notices here
+                      // Navigate to the ViewNoticesScreen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ViewNoticesScreen(),
+                        ),
+                      );
                     },
                   ),
                   _buildSquareBox(
@@ -101,7 +109,11 @@ class _WelcomePageState extends State<WelcomePage> {
                     title: 'Delete Notice',
                     icon: Icons.delete,
                     onTap: () {
-                      // Implement logic for deleting notices here
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DeleteNoticeScreen(),
+                          )); // Implement logic for deleting notices here
                     },
                   ),
                   _buildSquareBox(
@@ -122,7 +134,13 @@ class _WelcomePageState extends State<WelcomePage> {
                       title: 'View Notice',
                       icon: Icons.visibility,
                       onTap: () {
-                        // Implement logic for viewing notices here
+                        // Navigate to the ViewNoticesScreen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ViewNoticesScreen(),
+                          ),
+                        );
                       },
                     ),
                   ),
